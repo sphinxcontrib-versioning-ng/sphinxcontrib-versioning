@@ -6,7 +6,8 @@ import multiprocessing
 import os
 import sys
 
-from sphinx import application, build_main, locale
+from sphinx import application, locale
+from sphinx.cmd.build import build_main
 from sphinx.builders.html import StandaloneHTMLBuilder
 from sphinx.config import Config as SphinxConfig
 from sphinx.errors import SphinxError
@@ -57,7 +58,10 @@ class EventHandlers(object):
 
         # Add versions.html to sidebar.
         if '**' not in app.config.html_sidebars:
-            app.config.html_sidebars['**'] = StandaloneHTMLBuilder.default_sidebars + ['versions.html']
+            try:
+                app.config.html_sidebars['**'] = StandaloneHTMLBuilder.default_sidebars + ['versions.html']
+            except AttributeError as e:
+                app.config.html_sidebars['**'] = ['versions.html']
         elif 'versions.html' not in app.config.html_sidebars['**']:
             app.config.html_sidebars['**'].append('versions.html')
 
@@ -163,9 +167,9 @@ def setup(app):
 class ConfigInject(SphinxConfig):
     """Inject this extension info self.extensions. Append after user's extensions."""
 
-    def __init__(self, dirname, filename, overrides, tags):
+    def __init__(self, *args):
         """Constructor."""
-        super(ConfigInject, self).__init__(dirname, filename, overrides, tags)
+        super(ConfigInject, self).__init__(*args)
         self.extensions.append('sphinxcontrib.versioning.sphinx_')
 
 
@@ -231,7 +235,7 @@ def build(source, target, versions, current_name, is_root):
     :param bool is_root: Is this build in the web root?
     """
     log = logging.getLogger(__name__)
-    argv = ('sphinx-build', source, target)
+    argv = (source, target)
     config = Config.from_context()
 
     log.debug('Running sphinx-build for %s with args: %s', current_name, str(argv))
@@ -259,7 +263,7 @@ def read_config(source, current_name):
     config = Config.from_context()
 
     with TempDir() as temp_dir:
-        argv = ('sphinx-build', source, temp_dir)
+        argv = (source, temp_dir)
         log.debug('Running sphinx-build for config values with args: %s', str(argv))
         child = multiprocessing.Process(target=_read_config, args=(argv, config, current_name, queue))
         child.start()

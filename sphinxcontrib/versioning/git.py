@@ -308,7 +308,8 @@ def export(local_root, commit, target):
                         tar.extract(member=info, path=target)
                         if os.path.splitext(info.name)[1].lower() == '.rst':
                             mtimes.append(info.name)
-                for info in (i for i in queued_links if os.path.exists(os.path.join(target, i.linkname))):
+                for info in queued_links:
+                    # There used to be a check for broken symlinks here, but it was buggy
                     tar.extract(member=info, path=target)
         except tarfile.TarError as exc:
             log.debug('Failed to extract output from "git archive" command: %s', str(exc))
