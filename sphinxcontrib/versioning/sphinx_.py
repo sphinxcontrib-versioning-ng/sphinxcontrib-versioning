@@ -135,7 +135,7 @@ class EventHandlers(object):
             if os.path.isfile(file_path):
                 lufmt = app.config.html_last_updated_fmt or getattr(locale, '_')('%b %d, %Y')
                 mtime = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
-                context['last_updated'] = format_date(lufmt, mtime, language=app.config.language, warn=app.warn)
+                context['last_updated'] = format_date(lufmt, mtime, language=app.config.language)
 
 
 def setup(app):
